@@ -54,29 +54,25 @@ function _styleInit(): void {
 
 function _mouseMove(e: any) {
   e.preventDefault();
-  mouseParam.x = e.clientX;
-  mouseParam.y = e.clientY;
-
-  mouseParam.spX = e.changedTouches[0].pageX;
-  mouseParam.spY = e.changedTouches[0].pageY;
+  let win = window.innerWidth;
+  if (win >= 768) {
+    mouseParam.x = e.clientX;
+    mouseParam.y = e.clientY;
+  } else {
+    mouseParam.x = e.changedTouches[0].pageX;
+    mouseParam.y = e.changedTouches[0].pageY;
+  }
 }
 
 function _ballMove(): void {
   //01.ボールをマウスの中心に。
-  let win = window.innerWidth;
-  if (win >= 768) {
-    const mouseX = mouseParam.x - ballSetting.size * 0.5;
-    const mouseY = mouseParam.y - ballSetting.size * 0.5;
-    //02. 01で設定した値をtop.leftにセット。
-    ballElement[0].style.left = `${mouseX}px`;
-    ballElement[0].style.top = `${mouseY}px`;
-  } else {
-    const mouseX = mouseParam.spX - ballSetting.size * 0.5;
-    const mouseY = mouseParam.spY - ballSetting.size * 0.5;
-    //02. 01で設定した値をtop.leftにセット。
-    ballElement[0].style.left = `${mouseX}px`;
-    ballElement[0].style.top = `${mouseY}px`;
-  }
+  const mouseX = mouseParam.x - ballSetting.size * 0.5;
+  const mouseY = mouseParam.y - ballSetting.size * 0.5;
+
+  //02. 01で設定した値をtop.leftにセット。
+  ballElement[0].style.left = `${mouseX}px`;
+  ballElement[0].style.top = `${mouseY}px`;
+
   requestAnimationFrame(_ballMove);
 }
 
