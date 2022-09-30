@@ -5,18 +5,12 @@ body {
   overflow: hidden;
 }
 
-.stage {
-  width: 100%;
-  min-height: 100vh;
-}
-
 .ball {
   position: absolute;
   top: 0;
   left: 0;
   border-radius: 100vmax;
-  backdrop-filter: blur(5px);
-  border: 1px #fff solid;
+  mix-blend-mode: difference;
 }
 
 .image-cover {
@@ -44,8 +38,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
+  width: 60%;
+  height: 60%;
   object-fit: cover;
   z-index: -1;
 }
@@ -54,5 +48,9 @@ body {
   .image-cover {
     width: 90%;
     padding-top: 100%;
+  }
+  .image-cover img {
+    width: 100%;
+    height: 100%;
   }
 }

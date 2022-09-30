@@ -5,55 +5,38 @@ const ballElement = document.querySelectorAll<HTMLElement>(".ball");
 /*------------------------------
 * 各セッティング
 ----------------------------------*/
-const ballSetting = {
+const ballParam = {
   x: 0,
   y: 0,
-  size: 300,
+  size: 200,
   r: Math.random() * 255,
   g: Math.random() * 255,
   b: Math.random() * 255,
-  a: 0.4,
+  a: 1.0,
 };
 
 const mouseParam = {
   x: 0,
   y: 0,
-  spX: 0,
-  spY: 0,
 };
 
 /*------------------------------
 * 処理定義
 ----------------------------------*/
-function render(): void {
-  _styleInit();
-  _ballMove();
-  window.addEventListener("mousemove", _mouseMove);
-  window.addEventListener("touchmove", _mouseMove);
-  window.addEventListener("resize", () => {
-    _styleInit();
-  });
-}
-render();
 
 function _styleInit(): void {
   //x,y軸に中央
-  ballSetting.x = window.innerWidth * 0.5 - ballSetting.size * 0.5;
-  ballSetting.y = window.innerHeight * 0.5 - ballSetting.size * 0.5;
+  ballParam.x = window.innerWidth * 0.5 - ballParam.size * 0.5;
+  ballParam.y = window.innerHeight * 0.5 - ballParam.size * 0.5;
   //ボールにスタイリングを適用
-  let win = window.innerWidth;
-  if (win >= 768) {
-    ballElement[0].style.width = `${ballSetting.size}px`;
-    ballElement[0].style.height = `${ballSetting.size}px`;
-  } else {
-    ballElement[0].style.width = `calc(${ballSetting.size}px / 2)`;
-    ballElement[0].style.height = `calc(${ballSetting.size}px / 2)`;
-  }
-  ballElement[0].style.background = `rgba(${ballSetting.r},${ballSetting.g},${ballSetting.b},${ballSetting.a})`;
+  ballElement[0].style.width = `${ballParam.size}px`;
+  ballElement[0].style.height = `${ballParam.size}px`;
+
+  ballElement[0].style.background = `rgba(${ballParam.r},${ballParam.g},${ballParam.b},${ballParam.a})`;
 }
 
 function _mouseMove(e: any) {
-  e.preventDefault();
+  // e.preventDefault();
   let win = window.innerWidth;
   if (win >= 768) {
     mouseParam.x = e.clientX;
@@ -66,8 +49,8 @@ function _mouseMove(e: any) {
 
 function _ballMove(): void {
   //01.ボールをマウスの中心に。
-  const mouseX = mouseParam.x - ballSetting.size * 0.5;
-  const mouseY = mouseParam.y - ballSetting.size * 0.5;
+  const mouseX = mouseParam.x - ballParam.size * 0.5;
+  const mouseY = mouseParam.y - ballParam.size * 0.5;
 
   //02. 01で設定した値をtop.leftにセット。
   ballElement[0].style.left = `${mouseX}px`;
@@ -75,5 +58,19 @@ function _ballMove(): void {
 
   requestAnimationFrame(_ballMove);
 }
+
+/*------------------------------
+* 処理実行
+----------------------------------*/
+function render(): void {
+  _styleInit();
+  _ballMove();
+  window.addEventListener("mousemove", _mouseMove);
+  window.addEventListener("touchmove", _mouseMove);
+  window.addEventListener("resize", () => {
+    _styleInit();
+  });
+}
+render();
 
 export {};
