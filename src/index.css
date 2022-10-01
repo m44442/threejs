@@ -9,8 +9,17 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 100vmax;
+  /* border-radius: 100vmax; */
   mix-blend-mode: difference;
+  animation: rotate01 3s linear infinite;
+}
+@keyframes rotate01 {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .image-cover {
@@ -38,8 +47,8 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 60%;
-  height: 60%;
+  width: 40%;
+  height: 40%;
   object-fit: cover;
   z-index: -1;
 }
@@ -50,7 +59,7 @@ body {
     padding-top: 100%;
   }
   .image-cover img {
-    width: 100%;
-    height: 100%;
+    width: 50%;
+    height: 50%;
   }
 }
