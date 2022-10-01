@@ -20,6 +20,10 @@ const mouseParam = {
   y: 0,
 };
 
+const easeParam = {
+  ease: 0.07, //遅延時間
+};
+
 /*------------------------------
 * 処理定義
 ----------------------------------*/
@@ -52,9 +56,13 @@ function _ballMove(): void {
   const mouseX = mouseParam.x - ballParam.size * 0.5;
   const mouseY = mouseParam.y - ballParam.size * 0.5;
 
-  //02. 01で設定した値をtop.leftにセット。
-  ballElement[0].style.left = `${mouseX}px`;
-  ballElement[0].style.top = `${mouseY}px`;
+  // 02. easeを追加
+  ballParam.x += (mouseX - ballParam.x) * easeParam.ease;
+  ballParam.y += (mouseY - ballParam.y) * easeParam.ease;
+
+  //03. 02で設定した値をtop.leftにセット。
+  ballElement[0].style.left = `${ballParam.x}px`;
+  ballElement[0].style.top = `${ballParam.y}px`;
 
   requestAnimationFrame(_ballMove);
 }
