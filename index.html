@@ -4,15 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mouseFollowerEase</title>
+    <title>mouseFollower(Cat and Dog)</title>
     <link rel="stylesheet" href="src/reset.css" />
     <link rel="stylesheet" href="src/index.css" />
+    <style>
+      * {
+        cursor: url("/pointer.cur"), auto;
+      }
+      *:hover {
+        cursor: url("/pointer.cur"), auto;
+      }
+    </style>
   </head>
   <body>
-    <div class="ball"></div>
-
-    <div class="image-cover">
-      <img src="/img.png" alt="img" />
+    <div class="ball">🐱</div>
+    <div class="wrap">
+      <button class="btn">hover</button>
     </div>
     <script type="module" src="/src/index.ts"></script>
   </body>
