@@ -1,30 +1,35 @@
-import gsap from "gsap";
-
+import { gsap, Power4 } from "gsap";
+//https://github.com/dataarts/dat.gui
+//https://qiita.com/machilda777/items/f8f05e569665c237168a
+import * as dat from "dat.gui";
 /*------------------------------
 * DOM取得
 ----------------------------------*/
 const ballElement = document.querySelectorAll<HTMLElement>(".ball");
-const btn = document.querySelector<HTMLElement>(".btn");
+
+/*------------------------------
+* gui設定
+----------------------------------*/
+const gui = new dat.GUI();
+const property = {
+  color: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+};
+
+window.onload = function () {
+  gui.addColor(property, "color").onChange(_styleInit);
+};
+
 /*------------------------------
 * 各セッティング
 ----------------------------------*/
 const ballParam = {
   x: 0,
   y: 0,
-  size: 40,
+  size: 50,
   r: Math.random() * 255,
   g: Math.random() * 255,
   b: Math.random() * 255,
-  a: 0.0,
-};
-
-const mouseParam = {
-  x: 0,
-  y: 0,
-};
-
-const easeParam = {
-  ease: 0.07, //遅延時間
+  a: 1.0,
 };
 
 /*------------------------------
@@ -39,63 +44,67 @@ function _styleInit(): void {
     //ボールにスタイリングを適用
     ballElement[i].style.width = `${ballParam.size}px`;
     ballElement[i].style.height = `${ballParam.size}px`;
-
-    ballElement[i].style.background = `rgba(${ballParam.r},${ballParam.g},${ballParam.b},${ballParam.a})`;
+    ballElement[i].style.left = `${ballParam.x}px`;
+    ballElement[i].style.top = `${ballParam.y}px`;
+    ballElement[i].style.background = property.color;
   }
+  window.addEventListener("resize", _styleInit);
 }
 
-function _mouseMove(e: any) {
-  // e.preventDefault();
-  let win = window.innerWidth;
-  if (win >= 768) {
-    mouseParam.x = e.clientX;
-    mouseParam.y = e.clientY;
-  } else {
-    mouseParam.x = e.changedTouches[0].pageX;
-    mouseParam.y = e.changedTouches[0].pageY;
-  }
-}
-
-function positionInit(radiusNumber: number): number[] {
-  const time = new Date().getTime() / 600; //経過時間
-
-  //マウスの中心点 + (cos(経過時間) * 半径)
-  const x = mouseParam.x + Math.cos(time) * radiusNumber;
-  //マウスの中心点 + (sin(経過時間) * 半径)
-  const y = mouseParam.y + Math.sin(time) * radiusNumber;
-  //01.ボールをマウスの中心に。
-  const mouseX = x - ballParam.size * 0.5;
-  const mouseY = y - ballParam.size * 0.5;
-
-  // 02. easeを追加
-  ballParam.x += (mouseX - ballParam.x) * easeParam.ease;
-  ballParam.y += (mouseY - ballParam.y) * easeParam.ease;
-
-  return [ballParam.x, ballParam.y];
-}
-function _ballMove(): void {
-  let [positionX, positionY] = positionInit(60);
-  //03. 02で設定した値をtop.leftにセット。
-  ballElement[0].style.left = `${positionX}px`;
-  ballElement[0].style.top = `${positionY}px`;
-
-  requestAnimationFrame(_ballMove);
-}
-function _ballHover(): void {
-  btn?.addEventListener("mouseenter", () => {
-    gsap.to(ballElement[0], {
-      scale: 1.5,
-      duration: 0.5,
-    });
-    ballElement[0].innerHTML = "🐶";
+function _move(y: number, ease: string) {
+  ballElement.forEach((ball, index) => {
+    const delay: any = `0.${index}`;
+    if (index <= 2) {
+      gsap.to(ball, {
+        y: y,
+        ease: ease,
+        duration: 1,
+        delay: delay * 3,
+      });
+    } else if (index >= 2 && index <= 5) {
+      gsap.to(ball, {
+        x: y,
+        ease: ease,
+        duration: 1,
+        delay: delay * 3,
+      });
+    } else if (index >= 5 && index <= 8) {
+      gsap.to(ball, {
+        x: -y,
+        ease: ease,
+        duration: 1,
+        delay: delay * 3,
+      });
+    } else {
+      gsap.to(ball, {
+        y: -y,
+        ease: ease,
+        duration: 1,
+        delay: delay * 3,
+      });
+    }
   });
-  btn?.addEventListener("mouseleave", () => {
-    gsap.to(ballElement[0], {
-      scale: 1,
-      duration: 0.5,
-    });
-    ballElement[0].innerHTML = "🐱";
-  });
+}
+
+function _allMove() {
+  let flag = false; //分岐用フラッグ
+  _move(-200, "Power4.Out");
+  setInterval(() => {
+    flag = !flag; //反転
+    if (flag === true) {
+      _move(0, "Power4.In");
+    } else {
+      _move(-200, "Power4.Out");
+    }
+  }, 3000);
+
+  // 1ループ毎(6秒毎)にランダムで色を再設定
+  setInterval(() => {
+    const changeColor = `rgba(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255},${ballParam.a})`;
+    for (let i = 0; i < ballElement.length; i++) {
+      ballElement[i].style.background = changeColor;
+    }
+  }, 6000);
 }
 
 /*------------------------------
@@ -103,13 +112,7 @@ function _ballHover(): void {
 ----------------------------------*/
 function render(): void {
   _styleInit();
-  _ballMove();
-  _ballHover();
-  window.addEventListener("mousemove", _mouseMove);
-  window.addEventListener("touchmove", _mouseMove);
-  window.addEventListener("resize", () => {
-    _styleInit();
-  });
+  _allMove();
 }
 render();
 
