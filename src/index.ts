@@ -1,4 +1,4 @@
-import { gsap, Power4 } from "gsap";
+import { gsap } from "gsap";
 //https://github.com/dataarts/dat.gui
 //https://qiita.com/machilda777/items/f8f05e569665c237168a
 import * as dat from "dat.gui";
