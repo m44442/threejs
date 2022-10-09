@@ -129,7 +129,7 @@ class App {
     tl.to(this.mesh.material.uniforms.uPoint01, {
       value: 4.0,
       ease: "Power4.easeOut",
-      duration: 10,
+      duration: 5,
     })
       .to(this.mesh.material.uniforms.uPoint01, {
         value: 1.0,
