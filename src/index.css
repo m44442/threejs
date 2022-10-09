@@ -11,7 +11,8 @@ body {
   background-size: cover;
 }
 
-canvas {
+canvas,
+#webgl {
   mix-blend-mode: difference;
 }
 
