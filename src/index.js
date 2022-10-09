@@ -1,6 +1,5 @@
-//https://nogson2.hatenablog.com/entry/2017/12/24/193017
-
 import * as THREE from "three";
+import { MeshSurfaceSampler } from "three/addons/math/MeshSurfaceSampler.js";
 import { gsap, Power4 } from "gsap";
 
 class App {
@@ -31,10 +30,10 @@ class App {
       fovy: 60,
       aspect: window.innerWidth / window.innerHeight,
       near: 0.1,
-      far: 200.0,
+      far: 20000.0,
       x: 0.0,
       y: 0.0,
-      z: 8.0,
+      z: 40.0,
       lookAt: new THREE.Vector3(0.0, 0.0, 0.0),
     };
   }
@@ -85,176 +84,63 @@ class App {
     this.camera.updateProjectionMatrix();
   }
 
-  _setLight() {
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-    this.directionalLight.position.y = 100;
-    this.directionalLight.position.z = 80;
-    this.scene.add(this.ambientLight);
-    this.scene.add(this.directionalLight);
+  _setGeometory(geo) {
+    const particleNumber = 50000; //パーティクルの数
+    const material = new THREE.MeshBasicMaterial();
+    const mesh = new THREE.Mesh(geo, material);
+    const sampler = new MeshSurfaceSampler(mesh).build(); //メッシュ表面上にランダムに頂点を付与する
+    const particles = new Float32Array(particleNumber * 3);
+
+    for (let i = 0; i < particleNumber; i++) {
+      const vertex = new THREE.Vector3();
+      sampler.sample(vertex, new THREE.Vector3());
+      const x = vertex.x;
+      const y = vertex.y;
+      const z = vertex.z;
+      particles.set([x, y, z], i * 3);
+    }
+    return particles;
   }
 
   _setMesh() {
-    this.geometory = new THREE.PlaneGeometry(0.8, 10, 50, 80);
-    // this.geometory = new THREE.BoxGeometry(1, 10, 10, 10, 10, 10);
+    const allPointsBox = this._setGeometory(new THREE.BoxGeometry(10, 10, 10)); //Boxジオメトリの頂点座標が入った変数
+    const allPointsCube = this._setGeometory(new THREE.SphereGeometry(10, 32, 32)); //Sphereジオメトリの頂点座標が入った変数
 
-    this.material = new THREE.ShaderMaterial({
+    this.geometry = new THREE.BufferGeometry();
+    this.geometry.setAttribute("position", new THREE.BufferAttribute(allPointsBox, 3));
+    this.geometry.setAttribute("two", new THREE.BufferAttribute(allPointsCube, 3));
+
+    this.material = new THREE.RawShaderMaterial({
+      vertexShader: document.querySelector("#vertex").textContent,
+      fragmentShader: document.querySelector("#fragment").textContent,
       uniforms: {
-        uTime: { value: 0.0 },
-        uVertexTime: { value: 0.1 },
+        uPoint01: { value: 0.0 },
       },
-      vertexShader: `
-      varying vec2 vUv;
-      uniform float uVertexTime;
-      vec3 mod289(vec3 x) {
-        return x - floor(x * (1.0 / 289.0)) * 289.0;
-      }
-      
-      vec2 mod289(vec2 x) {
-        return x - floor(x * (1.0 / 289.0)) * 289.0;
-      }
-      
-      vec3 permute(vec3 x) {
-        return mod289(((x*34.0)+10.0)*x);
-      }
-      
-      float snoise(vec2 v)
-        {
-        const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
-                            0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
-                           -0.577350269189626,  // -1.0 + 2.0 * C.x
-                            0.024390243902439); // 1.0 / 41.0
-      // First corner
-        vec2 i  = floor(v + dot(v, C.yy) );
-        vec2 x0 = v -   i + dot(i, C.xx);
-      
-      // Other corners
-        vec2 i1;
-        //i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0
-        //i1.y = 1.0 - i1.x;
-        i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-        // x0 = x0 - 0.0 + 0.0 * C.xx ;
-        // x1 = x0 - i1 + 1.0 * C.xx ;
-        // x2 = x0 - 1.0 + 2.0 * C.xx ;
-        vec4 x12 = x0.xyxy + C.xxzz;
-        x12.xy -= i1;
-      
-      // Permutations
-        i = mod289(i); // Avoid truncation effects in permutation
-        vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-          + i.x + vec3(0.0, i1.x, 1.0 ));
-      
-        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-        m = m*m ;
-        m = m*m ;
-      
-      // Gradients: 41 points uniformly over a line, mapped onto a diamond.
-      // The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
-      
-        vec3 x = 2.0 * fract(p * C.www) - 1.0;
-        vec3 h = abs(x) - 1.0;
-        vec3 ox = floor(x + 0.5);
-        vec3 a0 = x - ox;
-      
-      // Normalise gradients implicitly by scaling m
-      // Approximation of: m *= inversesqrt( a0*a0 + h*h );
-        m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-      
-      // Compute final noise value at P
-        vec3 g;
-        g.x  = a0.x  * x0.x  + h.x  * x0.y;
-        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-        return 200.0 * dot(m, g);
-      }
-        void main() {
-          vUv = uv;
-          vec3 pos = position;
-
-       
-          pos.x = snoise(pos.xy) * uVertexTime * 1.0;
-          pos.y = snoise(normalize(pos.xy)) * uVertexTime * 1.0;
-          
-
-
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 );
-        }
-      `,
-      fragmentShader: `
-      precision mediump float;
-      uniform float uTime;
-
-      vec3 mod289(vec3 x) {
-        return x - floor(x * (1.0 / 289.0)) * 289.0;
-      }
-      
-      vec2 mod289(vec2 x) {
-        return x - floor(x * (1.0 / 289.0)) * 289.0;
-      }
-      
-      vec3 permute(vec3 x) {
-        return mod289(((x*34.0)+10.0)*x);
-      }
-      
-      float snoise(vec2 v)
-        {
-        const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
-                            0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
-                           -0.577350269189626,  // -1.0 + 2.0 * C.x
-                            0.024390243902439); // 1.0 / 41.0
-      // First corner
-        vec2 i  = floor(v + dot(v, C.yy) );
-        vec2 x0 = v -   i + dot(i, C.xx);
-      
-      // Other corners
-        vec2 i1;
-        //i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0
-        //i1.y = 1.0 - i1.x;
-        i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-        // x0 = x0 - 0.0 + 0.0 * C.xx ;
-        // x1 = x0 - i1 + 1.0 * C.xx ;
-        // x2 = x0 - 1.0 + 2.0 * C.xx ;
-        vec4 x12 = x0.xyxy + C.xxzz;
-        x12.xy -= i1;
-      
-      // Permutations
-        i = mod289(i); // Avoid truncation effects in permutation
-        vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-          + i.x + vec3(0.0, i1.x, 1.0 ));
-      
-        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-        m = m*m ;
-        m = m*m ;
-      
-      // Gradients: 41 points uniformly over a line, mapped onto a diamond.
-      // The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
-      
-        vec3 x = 2.0 * fract(p * C.www) - 1.0;
-        vec3 h = abs(x) - 0.5;
-        vec3 ox = floor(x + 0.5);
-        vec3 a0 = x - ox;
-      
-      // Normalise gradients implicitly by scaling m
-      // Approximation of: m *= inversesqrt( a0*a0 + h*h );
-        m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-      
-      // Compute final noise value at P
-        vec3 g;
-        g.x  = a0.x  * x0.x  + h.x  * x0.y;
-        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-        return 80.0 * dot(m, g);
-      }
-
-      
-      varying vec2 vUv;
-  void main() {
-       float offset = snoise(vUv + uTime);
-  gl_FragColor = vec4(vec3(offset), 1.0);
-    }
-      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
     });
-    this.mesh = new THREE.Mesh(this.geometory, this.material);
 
+    this.mesh = new THREE.Points(this.geometry, this.material);
     this.scene.add(this.mesh);
+  }
+
+  _gsapAnimations() {
+    const tl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
+    tl.to(this.mesh.material.uniforms.uPoint01, {
+      value: 4.0,
+      ease: "Power4.easeOut",
+      duration: 10,
+    })
+      .to(this.mesh.material.uniforms.uPoint01, {
+        value: 1.0,
+        ease: "Power4.easeOut",
+        duration: 1,
+      })
+      .to(this.mesh.material.uniforms.uPoint01, {
+        value: 0.0,
+        ease: "Power4.easeOut",
+        duration: 1,
+      });
   }
 
   init() {
@@ -262,25 +148,24 @@ class App {
     this._setScene();
     this._setCamera();
     this._setMesh();
-    this._setLight();
-
-    gsap.to(this.mesh.material.uniforms.uVertexTime, {
-      value: 1.2,
-      ease: "Power4.easeOut",
-      repeat: -1,
-      yoyo: true,
-      duration: 3,
-    });
+    this._gsapAnimations();
   }
+
   render() {
     requestAnimationFrame(this.render);
-    this.mesh.material.uniforms.uTime.value += 0.004;
-    // this.mesh.material.uniforms.uVertexTime.value += 0.02;
-
-    // this.mesh.rotation.x += 0.001;
-    // this.mesh.rotation.y += 0.001;
+    this.mesh.rotation.x += 0.001;
+    this.mesh.rotation.y += 0.001;
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  onResize() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(width, height);
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
   }
 }
 
@@ -288,6 +173,9 @@ window.addEventListener("DOMContentLoaded", () => {
   const app = new App();
   app.init();
   app.render();
+  window.addEventListener("resize", () => {
+    app.onResize();
+  });
 });
 
 export {};
