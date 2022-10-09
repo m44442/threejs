@@ -8,7 +8,7 @@ class App {
    */
   static get RENDERER_SETTING() {
     return {
-      clearColor: 0x111111,
+      clearColor: 0x000000,
       width: window.innerWidth,
       height: window.innerHeight,
     };
@@ -33,7 +33,7 @@ class App {
       far: 20000.0,
       x: 0.0,
       y: 0.0,
-      z: 40.0,
+      z: 15.0,
       lookAt: new THREE.Vector3(0.0, 0.0, 0.0),
     };
   }
@@ -85,7 +85,7 @@ class App {
   }
 
   _setGeometory(geo) {
-    const particleNumber = 50000; //パーティクルの数
+    const particleNumber = 100000; //パーティクルの数
     const material = new THREE.MeshBasicMaterial();
     const mesh = new THREE.Mesh(geo, material);
     const sampler = new MeshSurfaceSampler(mesh).build(); //メッシュ表面上にランダムに頂点を付与する
@@ -103,8 +103,8 @@ class App {
   }
 
   _setMesh() {
-    const allPointsBox = this._setGeometory(new THREE.BoxGeometry(10, 10, 10)); //Boxジオメトリの頂点座標が入った変数
-    const allPointsCube = this._setGeometory(new THREE.SphereGeometry(10, 32, 32)); //Sphereジオメトリの頂点座標が入った変数
+    const allPointsBox = this._setGeometory(new THREE.BoxGeometry(10, 10, 10, 100, 100, 100)); //Boxジオメトリの頂点座標が入った変数
+    const allPointsCube = this._setGeometory(new THREE.SphereGeometry(10, 100, 100, 100, 100, 100)); //Sphereジオメトリの頂点座標が入った変数
 
     this.geometry = new THREE.BufferGeometry();
     this.geometry.setAttribute("position", new THREE.BufferAttribute(allPointsBox, 3));
@@ -115,6 +115,8 @@ class App {
       fragmentShader: document.querySelector("#fragment").textContent,
       uniforms: {
         uPoint01: { value: 0.0 },
+        uTime: { value: 0.0 },
+        uSize: { value: 0.1 },
       },
       transparent: true,
       blending: THREE.AdditiveBlending,
@@ -127,20 +129,10 @@ class App {
   _gsapAnimations() {
     const tl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
     tl.to(this.mesh.material.uniforms.uPoint01, {
-      value: 4.0,
+      value: 0.0,
       ease: "Power4.easeOut",
-      duration: 5,
-    })
-      .to(this.mesh.material.uniforms.uPoint01, {
-        value: 1.0,
-        ease: "Power4.easeOut",
-        duration: 1,
-      })
-      .to(this.mesh.material.uniforms.uPoint01, {
-        value: 0.0,
-        ease: "Power4.easeOut",
-        duration: 1,
-      });
+      duration: 4,
+    });
   }
 
   init() {
@@ -153,8 +145,8 @@ class App {
 
   render() {
     requestAnimationFrame(this.render);
-    this.mesh.rotation.x += 0.001;
-    this.mesh.rotation.y += 0.001;
+
+    this.mesh.material.uniforms.uTime.value += 0.0005;
 
     this.renderer.render(this.scene, this.camera);
   }
