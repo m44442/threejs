@@ -27,3 +27,4 @@ jobs:
         with:
           folder: dist
           branch: gh-pages
+          token: ${{ secrets.ACTIONS_DEPLOY_ACCESS_TOKEN }}
