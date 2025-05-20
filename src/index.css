@@ -22,7 +22,8 @@ html {
   font-size: 3vmax;
   position: absolute;
   border-radius: 100vmax;
-  mix-blend-mode: difference;
+  background-color: #000; /* 粒子の背景色を黒に設定 */
+  color: #fff; /* 粒子内のテキストがある場合は白に設定 */
   pointer-events: none;
 }
 

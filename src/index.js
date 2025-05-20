@@ -3,12 +3,12 @@ import { MeshSurfaceSampler } from "three/addons/math/MeshSurfaceSampler.js";
 import { gsap, Power4 } from "gsap";
 
 class App {
-  /**
+   /**
    * レンダー
    */
   static get RENDERER_SETTING() {
     return {
-      clearColor: 0x000000,
+      clearColor: 0xffffff, // 0x000000 から 0xffffff に変更
       width: window.innerWidth,
       height: window.innerHeight,
     };
@@ -110,7 +110,7 @@ class App {
     this.geometry.setAttribute("position", new THREE.BufferAttribute(allPointsBox, 3));
     this.geometry.setAttribute("two", new THREE.BufferAttribute(allPointsCube, 3));
 
-    this.material = new THREE.RawShaderMaterial({
+        this.material = new THREE.RawShaderMaterial({
       vertexShader: document.querySelector("#vertex").textContent,
       fragmentShader: document.querySelector("#fragment").textContent,
       uniforms: {
@@ -119,7 +119,7 @@ class App {
         uSize: { value: 0.1 },
       },
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending, // THREE.AdditiveBlending から THREE.NormalBlending に変更
     });
 
     this.mesh = new THREE.Points(this.geometry, this.material);
